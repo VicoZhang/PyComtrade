@@ -1,6 +1,5 @@
 import os.path
 import struct
-import matplotlib.pyplot as plt
 import csv
 
 
@@ -14,11 +13,10 @@ class ComtradeFile:
         self.a_chan_num = ...  # 模拟通道数
         self.d_chan_num = ...  # 数字通道数
 
-        self.cfg_info = []  # 存储“.cfg”读入数据
-        self.dat_info = []  # 存储“.dat”读入数据
+        self.cfg_info = []  # 存储“.cfg”文件读入数据
 
         self.a_chan_info = []  # 存储模拟通道数的信息，格式为字典
-        self.a_data_info = []  # 存储模拟通道数的数据
+        self.a_data_info = []  # 存储模拟通道数的数据，用于解析
 
         self.sys_freq = ...  # 系统频率
         self.sample_freq_num = ...  # 采样频率个数
@@ -26,28 +24,38 @@ class ComtradeFile:
         self.sample_num = []  # 采样点数
 
         self.data_format = ...  # 数据存储方式 Bin 或者 ASCII
-        self.pack_format = ...
+        self.pack_format = ...  # 数据解析方式
 
-        self.dat_read_length = ...  # 每次采样的需要读入的数据长度
+        self.dat_read_length = ...  # 每次解析时需要读入的数据长度
 
-        self._read_cfg()
-        self._read_dat()
+        self._read_cfg()  # 初始化操作
+        self._read_dat()  # 初始化操作
 
     def _read_cfg(self):
         with open(self.cfg_path) as cfg_file:
             self.cfg_info = [line.replace('\n', '').split(',') for line in cfg_file.readlines()]
 
-        self.channel_num = self.cfg_info[1][0]
+        # 通道数量信息
+        self.channel_num = eval(self.cfg_info[1][0])
         self.a_chan_num = eval(self.cfg_info[1][1].replace('A', ''))
         self.d_chan_num = eval(self.cfg_info[1][2].replace('D', ''))
+        print('通道数量解析错误') if self.a_chan_num + self.d_chan_num != self.channel_num else ...
 
-        self.sys_freq = self.cfg_info[-9][0]
-        self.sample_freq_num = self.cfg_info[-8][0]
-        self.sample_freq = [self.cfg_info[-6][0], self.cfg_info[-5][0]]
+        # 频率信息
+        self.sys_freq = eval(self.cfg_info[-9][0])
+        print('注意系统频率非50Hz') if self.sys_freq != 50 else ...
+
+        # 采样信息
+        self.sample_freq_num = eval(self.cfg_info[-8][0])
+        self.sample_freq = [eval(self.cfg_info[-6][0]), eval(self.cfg_info[-5][0])]
         self.sample_num = [eval(self.cfg_info[-6][1]), eval(self.cfg_info[-5][1])]
+        ... if self.sample_freq_num == len(self.sample_freq) and self.sample_freq_num == len(
+            self.sample_num) else print('采样信息处读取错误')
 
+        # 数据存储信息
         self.data_format = self.cfg_info[-2][0]
 
+        # 模拟量含义
         for i in range(self.a_chan_num):
             self.a_chan_info.append({})
             self.a_chan_info[i]['a_NO.'] = self.cfg_info[i + 2][0]
@@ -60,31 +68,33 @@ class ComtradeFile:
             self.a_chan_info[i]['fTime'] = self.cfg_info[i + 2][7]
             self.a_chan_info[i]['fMin'] = self.cfg_info[i + 2][8]
             self.a_chan_info[i]['fMax'] = self.cfg_info[i + 2][9]
-            self.a_chan_info[i]['K1'] = self.cfg_info[i + 2][10]
-            self.a_chan_info[i]['K2'] = self.cfg_info[i + 2][11]
+            self.a_chan_info[i]['K1'] = float(self.cfg_info[i + 2][10])
+            self.a_chan_info[i]['K2'] = float(self.cfg_info[i + 2][11])
             self.a_chan_info[i]['PorS'] = self.cfg_info[i + 2][12]
-            self.a_chan_info[i]['ana_data'] = []
+            self.a_chan_info[i]['ana_data'] = []  # 存储真实信息
 
     def _read_dat(self):
-        self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * int(self.d_chan_num / 16)
-        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * int(self.d_chan_num / 16)
+        self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * int(self.d_chan_num / 16)  # 单次解析数据字节长度
+        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * int(self.d_chan_num / 16)  # 单词解析数据类型
         n_struct = struct.Struct(self.pack_format)
-        mode = 'rb' if self.data_format == 'BINARY' else 'rb'
+        mode = 'rb' if self.data_format == 'BINARY' else 'r'  # todo 有待考究
 
         with open(self.dat_path, mode=mode) as dat_file:
-            self.a_data_info = [dat_file.read(self.dat_read_length) for i in range(self.sample_num[1])]
+            self.a_data_info = [dat_file.read(self.dat_read_length) for _ in range(self.sample_num[1])]
 
+        # 解析数据
         for i in range(self.sample_num[1]):
             n_unpacked_data = n_struct.unpack(self.a_data_info[i])
             for j in range(self.a_chan_num):
                 self.a_chan_info[j]['ana_data'].append(n_unpacked_data[2 + j])
 
+        # 转换成真实值
         for i in range(self.sample_num[1]):
             for j in range(self.a_chan_num):
                 self.a_chan_info[j]['ana_data'][i] = \
                     self.a_chan_info[j]['ana_data'][i] * self.a_chan_info[j]['FA'] + self.a_chan_info[j]['FB']
 
-    def save_csv(self, csv_path):
+    def save_csv(self, csv_path):  # 保存数据位csv格式
         os.makedirs(csv_path) if not os.path.exists(csv_path) else ...
         for i in range(self.a_chan_num):
             file_name = self.a_chan_info[i]['a_name']
