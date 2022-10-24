@@ -1,6 +1,9 @@
 import os.path
 import struct
 import csv
+import matplotlib
+import matplotlib.pyplot as plt
+from PIL import Image
 
 
 class ComtradeFile:
@@ -42,11 +45,11 @@ class ComtradeFile:
         print('通道数量解析错误') if self.a_chan_num + self.d_chan_num != self.channel_num else ...
 
         # 频率信息
-        self.sys_freq = eval(self.cfg_info[-9][0])
+        self.sys_freq = eval(self.cfg_info[-8][0])
         print('注意系统频率非50Hz') if self.sys_freq != 50 else ...
 
         # 采样信息
-        self.sample_freq_num = eval(self.cfg_info[-8][0])
+        self.sample_freq_num = eval(self.cfg_info[-7][0])
         self.sample_freq = [eval(self.cfg_info[-6][0]), eval(self.cfg_info[-5][0])]
         self.sample_num = [eval(self.cfg_info[-6][1]), eval(self.cfg_info[-5][1])]
         ... if self.sample_freq_num == len(self.sample_freq) and self.sample_freq_num == len(
@@ -73,6 +76,8 @@ class ComtradeFile:
             self.a_chan_info[i]['PorS'] = self.cfg_info[i + 2][12]
             self.a_chan_info[i]['ana_data'] = []  # 存储真实信息
 
+        print('cfg文件已正确解析')
+
     def _read_dat(self):
         self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * int(self.d_chan_num / 16)  # 单次解析数据字节长度
         self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * int(self.d_chan_num / 16)  # 单词解析数据类型
@@ -94,15 +99,30 @@ class ComtradeFile:
                 self.a_chan_info[j]['ana_data'][i] = \
                     self.a_chan_info[j]['ana_data'][i] * self.a_chan_info[j]['FA'] + self.a_chan_info[j]['FB']
 
-    def save_csv(self, csv_path):  # 保存数据位csv格式
-        os.makedirs(csv_path) if not os.path.exists(csv_path) else ...
+        print('dat文件已正常解析')
+
+    def save_csv(self, path):  # 保存数据位csv格式
+        os.makedirs(path) if not os.path.exists(path) else ...
         for i in range(self.a_chan_num):
-            file_name = self.a_chan_info[i]['a_name']
-            with open(os.path.join(csv_path, file_name), 'w') as csv_obj:
+            file_name = self.a_chan_info[i]['a_name'] + '.csv'
+            with open(os.path.join(path, file_name), 'w') as csv_obj:
                 writer = csv.writer(csv_obj)
                 writer.writerow(self.a_chan_info[i]['ana_data'])
+        print("csv数据文件已生成，保存在{}目录下".format(path))
+
+    def save_png(self, path):
+        os.makedirs(path) if not os.path.exists(path) else ...
+        for i in range(self.a_chan_num):
+            plt.plot(self.a_chan_info[i]['ana_data'], linewidth=0.5)
+            img_path = path + '/{}.png'.format(self.a_chan_info[i]['a_name'])
+            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['axes.unicode_minus'] = False
+            plt.title('{}'.format(self.a_chan_info[i]['a_name']))
+            plt.savefig(img_path)
+            plt.close()
+        print("图片已经正常绘制，保存在{}目录下".format(path))
 
 
 if __name__ == '__main__':
     test = ComtradeFile('../initial_file', 'BAY01_0001_20221020_114520_483')
-    test.save_csv('../csv')
+
