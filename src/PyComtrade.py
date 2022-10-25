@@ -55,8 +55,11 @@ class ComtradeFile:
         ... if self.sample_freq_num == len(self.sample_freq) and self.sample_freq_num == len(
             self.sample_num) else print('采样信息处读取错误')
 
-        # 数据存储信息
-        self.data_format = self.cfg_info[-2][0]
+        # 数据存储信息 如果遇到3行空行？
+        if self.cfg_info[-1][0] != '':
+            self.data_format = self.cfg_info[-1][0]
+        else:
+            self.data_format = self.cfg_info[-2][0]
 
         # 模拟量含义
         for i in range(self.a_chan_num):
@@ -85,16 +88,16 @@ class ComtradeFile:
         mode = 'rb' if self.data_format == 'BINARY' else 'r'  # todo 有待考究
 
         with open(self.dat_path, mode=mode) as dat_file:
-            self.a_data_info = [dat_file.read(self.dat_read_length) for _ in range(self.sample_num[1])]
+            self.a_data_info = [dat_file.read(self.dat_read_length) for _ in range(self.sample_num[-1])]
 
         # 解析数据
-        for i in range(self.sample_num[1]):
+        for i in range(self.sample_num[-1]):
             n_unpacked_data = n_struct.unpack(self.a_data_info[i])
             for j in range(self.a_chan_num):
                 self.a_chan_info[j]['ana_data'].append(n_unpacked_data[2 + j])
 
         # 转换成真实值
-        for i in range(self.sample_num[1]):
+        for i in range(self.sample_num[-1]):
             for j in range(self.a_chan_num):
                 self.a_chan_info[j]['ana_data'][i] = \
                     self.a_chan_info[j]['ana_data'][i] * self.a_chan_info[j]['FA'] + self.a_chan_info[j]['FB']
@@ -124,6 +127,7 @@ class ComtradeFile:
 
 
 if __name__ == '__main__':
-    test = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
-    test.save_png('../png')
+    test1 = ComtradeFile('../test_file/2022-09-14_04-08-18_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-14-04_08_18-039-00019-00028')
+    test2 = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
+    print()
 
