@@ -45,13 +45,13 @@ class ComtradeFile:
         print('通道数量解析错误') if self.a_chan_num + self.d_chan_num != self.channel_num else ...
 
         # 频率信息
-        self.sys_freq = eval(self.cfg_info[-8][0])
+        self.sys_freq = eval(self.cfg_info[2+self.channel_num][0])
         print('注意系统频率非50Hz') if self.sys_freq != 50 else ...
 
         # 采样信息
-        self.sample_freq_num = eval(self.cfg_info[-7][0])
-        self.sample_freq = [eval(self.cfg_info[-6][0]), eval(self.cfg_info[-5][0])]
-        self.sample_num = [eval(self.cfg_info[-6][1]), eval(self.cfg_info[-5][1])]
+        self.sample_freq_num = eval(self.cfg_info[3+self.channel_num][0])
+        self.sample_freq = [eval(self.cfg_info[4+self.channel_num+i][0]) for i in range(0, self.sample_freq_num)]
+        self.sample_num = [eval(self.cfg_info[4+self.channel_num+i][1]) for i in range(0, self.sample_freq_num)]
         ... if self.sample_freq_num == len(self.sample_freq) and self.sample_freq_num == len(
             self.sample_num) else print('采样信息处读取错误')
 
@@ -124,5 +124,6 @@ class ComtradeFile:
 
 
 if __name__ == '__main__':
-    test = ComtradeFile('../initial_file', 'BAY01_0001_20221020_114520_483')
+    test = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
+    test.save_png('../png')
 
