@@ -55,11 +55,8 @@ class ComtradeFile:
         ... if self.sample_freq_num == len(self.sample_freq) and self.sample_freq_num == len(
             self.sample_num) else print('采样信息处读取错误')
 
-        # 数据存储信息 如果遇到3行空行？
-        if self.cfg_info[-1][0] != '':
-            self.data_format = self.cfg_info[-1][0]
-        else:
-            self.data_format = self.cfg_info[-2][0]
+        # 数据存储信息
+        self.data_format = self.cfg_info[6+self.channel_num+self.sample_freq_num][0]
 
         # 模拟量含义
         for i in range(self.a_chan_num):
@@ -128,6 +125,16 @@ class ComtradeFile:
 
 if __name__ == '__main__':
     test1 = ComtradeFile('../test_file/2022-09-14_04-08-18_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-14-04_08_18-039-00019-00028')
-    test2 = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
+    test1.save_csv('../csv')
+    # test2 = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
+    # test3 = ComtradeFile('../test_file/2022-09-18_21-29-45_110kV全安站_10kV F29线路保护RCS-9611B_录波文件', '2022-09-18-21_29_45-613-00043-00002')
+    # test4 = ComtradeFile('../test_file/2022-09-23_16-53-08_110kV全安站_10kV F26线路保护RCS-9611B_录波文件', '2022-09-23-16_53_08-293-00040-34599')
+    # test5 = ComtradeFile('../test_file/2022-09-24_08-07-10_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-24-08_07_10-991-00019-00032')
+    # test6 = ComtradeFile('../test_file/2022-09-24_08-17-28_110kV横江站_10kV F20馈线_录波文件', 'D35_RCD_00144_20220924_081728_521')
+    # test7 = ComtradeFile('../test_file/2022-09-25_18-30-46_110kV横江站_10kV F33馈线_录波文件', 'D44_RCD_00045_20220925_183046_779')
+    # test8 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114531_483')
+    # test9 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114520_483')
+    # test10 = ComtradeFile('../test_file', 'cfg_file')
+    # test11 = ComtradeFile('../test_file', '2018年05月09日15时23分34秒')
     print()
 
