@@ -1,3 +1,4 @@
+import math
 import os.path
 import struct
 import csv
@@ -79,8 +80,8 @@ class ComtradeFile:
         print('cfg文件已正确解析')
 
     def _read_dat(self):
-        self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * int(self.d_chan_num / 16)  # 单次解析数据字节长度
-        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * int(self.d_chan_num / 16)  # 单词解析数据类型
+        self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * math.ceil(self.d_chan_num / 16)  # 单次解析数据字节长度
+        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * math.ceil(self.d_chan_num / 16)  # 单词解析数据类型
         n_struct = struct.Struct(self.pack_format)
         mode = 'rb' if self.data_format == 'BINARY' else 'r'  # todo 有待考究
 
