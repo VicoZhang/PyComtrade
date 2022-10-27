@@ -1,3 +1,13 @@
+"""
+本文为 PyComtrade 的核心文件,实现了对 Comtrade 数据文件格式的读取和转换。
+
+当前版本为：V2.0，请在网址 https://github.com/VicoZhang/PyComtrade.git 检查是否为最新版本。
+
+当前版本已实现的功能以及运行依赖库参见 readme.md 文件
+
+限于作者水平有限，欢迎对程序做出修改和补充，同时请通过 github 告知作者。
+"""
+
 import math
 import os.path
 import struct
@@ -10,6 +20,12 @@ from scipy.io import savemat
 class ComtradeFile:
 
     def __init__(self, file_path, file_name):
+        """
+        初始化ComtradeFile类
+
+        :param file_path: 文件目录，务必保证'.dat'和'.cfg'文件在该目录下
+        :param file_name: comtrade文件名，注意不加后缀名
+        """
         self.file_name = file_name
         self.cfg_path = os.path.join(file_path, file_name + '.cfg')
         self.dat_path = os.path.join(file_path, file_name + '.dat')
@@ -29,14 +45,16 @@ class ComtradeFile:
         self.sample_num = []  # 采样点数
 
         self.data_format = ...  # 数据存储方式 Bin 或者 ASCII
-        self.pack_format = ...  # 数据解析方式
-
+        self.pack_format = ...  # 数据解析模板
         self.dat_read_length = ...  # 每次解析时需要读入的数据长度
 
         self._read_cfg()  # 初始化操作
         self._read_dat()  # 初始化操作
 
     def _read_cfg(self):
+        """
+        初始化读取cfg文件，非必须请勿修改内部索引
+        """
         with open(self.cfg_path) as cfg_file:
             self.cfg_info = [line.replace('\n', '').split(',') for line in cfg_file.readlines()]
 
@@ -81,8 +99,11 @@ class ComtradeFile:
         print('cfg文件已正确解析')
 
     def _read_dat(self):
+        """
+        初始化读取dat文件，非必须请勿修改内部索引
+        """
         self.dat_read_length = 4 + 4 + 2 * self.a_chan_num + 2 * math.ceil(self.d_chan_num / 16)  # 单次解析数据字节长度
-        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * math.ceil(self.d_chan_num / 16)  # 单词解析数据类型
+        self.pack_format = '<' + 'I' * 2 + 'h' * self.a_chan_num + 'H' * math.ceil(self.d_chan_num / 16)  # 单次解析数据类型
         n_struct = struct.Struct(self.pack_format)
         mode = 'rb' if self.data_format == 'BINARY' else 'r'
 
@@ -103,7 +124,11 @@ class ComtradeFile:
 
         print('dat文件已正常解析')
 
-    def save_csv(self, csv_path):  # 保存数据位csv格式
+    def save_csv(self, csv_path):
+        """
+        保存数据为 csv 格式
+        :param csv_path: csv 文件存储路径
+        """
         os.makedirs(csv_path) if not os.path.exists(csv_path) else ...
         for i in range(self.a_chan_num):
             file_name = self.a_chan_info[i]['a_name'] + '.csv'
@@ -113,9 +138,14 @@ class ComtradeFile:
         print("csv数据文件已生成，保存在{}目录下".format(csv_path))
 
     def save_png(self, png_path):
+        """
+        保存 png 图像，若要实现对图像的设置或者显示图像，请在本函数内修改
+        :param png_path: png 图像路径
+        """
         os.makedirs(png_path) if not os.path.exists(png_path) else ...
         for i in range(self.a_chan_num):
             plt.plot(self.a_chan_info[i]['ana_data'], linewidth=0.5)
+            # plt.show() # 如需显示图像，取消该行注释
             img_path = png_path + '/{}.png'.format(self.a_chan_info[i]['a_name'])
             plt.rcParams['font.sans-serif'] = ['SimHei']
             plt.rcParams['axes.unicode_minus'] = False
@@ -125,6 +155,11 @@ class ComtradeFile:
         print("图片已经正常绘制，保存在{}目录下".format(png_path))
 
     def save_mat(self, mat_path):
+        """
+        保存 .mat 文件，提供和 MATLAB 的数据接口。注意，由于有些文件变量名中包含汉字，无法在MATLAB中对其命名，故转换为拼英命名，
+        因此运行该函数需支持 pinyin 库， 具体命名规则即下载方法参见 https://pypi.org/project/pinyin/
+        :param mat_path: .mat文件路径
+        """
         os.makedirs(mat_path) if not os.path.exists(mat_path) else ...
         mat_file = mat_path + '/{}.mat'.format(self.file_name)
         try:
@@ -141,7 +176,7 @@ class ComtradeFile:
 
 
 if __name__ == '__main__':
-    # 以下为测试程序
+    # 以下为测试程序，开发时用到
     # test1 = ComtradeFile('../test_file/2022-09-14_04-08-18_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-14-04_08_18-039-00019-00028')
     # test2 = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
     # test3 = ComtradeFile('../test_file/2022-09-18_21-29-45_110kV全安站_10kV F29线路保护RCS-9611B_录波文件', '2022-09-18-21_29_45-613-00043-00002')
@@ -149,9 +184,9 @@ if __name__ == '__main__':
     # test5 = ComtradeFile('../test_file/2022-09-24_08-07-10_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-24-08_07_10-991-00019-00032')
     # test6 = ComtradeFile('../test_file/2022-09-24_08-17-28_110kV横江站_10kV F20馈线_录波文件', 'D35_RCD_00144_20220924_081728_521')
     # test7 = ComtradeFile('../test_file/2022-09-25_18-30-46_110kV横江站_10kV F33馈线_录波文件','D44_RCD_00045_20220925_183046_779')
-    test8 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114531_483')
+    # test8 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114531_483')
     # test9 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114520_483')
-    test8.save_mat('../mat')
+    # test8.save_mat('../mat')
     # test10 = ComtradeFile('../test_file', 'cfg_file')
     # test11 = ComtradeFile('../test_file', '2018年05月09日15时23分34秒')
     print()
