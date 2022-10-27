@@ -1,8 +1,9 @@
 # PyComtrade
 
-读取 Comtrade 数据格式文件。
+读取 Comtrade 数据格式文，其中 Comtrade 数据格式采取1999年标准。
 
-目前版本为V2.1，后续将在本仓库中进行更新。请注意，这份代码仅为初步实现，后续还有很大的拓展和改进空间，因此欢迎对代码做出修改和补充，同时请将修改后的代码 push 到本仓库中。
+目前代码版本为V2.1，后续将在本仓库中进行更新。
+请注意，这份代码仅为初步实现，后续还有很大的拓展和改进空间，因此欢迎对代码做出修改和补充，同时请将修改后的代码 push 到本仓库中。
 
 ## 使用方法
 
@@ -11,7 +12,7 @@ PyComtrade.py 中给出了封装好的 ComtradeFile 类的使用范例，范例�
 
 ## 当前版本实现的功能
 
-1. 通过 ComtradeFile.save_csv() 方法将 Comtrade 文件转换成 csv 数据格式。该格式通用性较强，可导入多种软件。
+1. 通过 ComtradeFile.save_csv() 方法将 Comtrade 文件转换成 csv 数据格式。该格式通用性较强，可在多种软件中导入。
 2. 通过 ComtradeFile.save_png() 方法将 Comtrade 文件转显示为 png 图片。
 3. 通过 ComtradeFile.save_mat() 方法将 Comtrade 文件导出为 .mat 文件，可直接导入在 MATLAB 中，做后续分析。
 
