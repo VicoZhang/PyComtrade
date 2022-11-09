@@ -1,7 +1,7 @@
 """
 本文为 PyComtrade 的核心文件,实现了对 Comtrade 数据文件格式的读取和转换。
 
-当前版本为：V2.0，请在网址 https://github.com/VicoZhang/PyComtrade.git 检查是否为最新版本。
+当前版本为：V2.1，请在网址 https://github.com/VicoZhang/PyComtrade.git 检查是否为最新版本。
 
 当前版本已实现的功能以及运行依赖库参见 readme.md 文件
 
