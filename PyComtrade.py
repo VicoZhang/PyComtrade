@@ -1,11 +1,13 @@
 """
-本文为 PyComtrade 的核心文件,实现了对 Comtrade 数据文件格式的读取和转换。
+本程序实现了对 Comtrade 数据文件格式的读取和转换。
 
-当前版本为：V2.1，请在网址 https://github.com/VicoZhang/PyComtrade.git 检查是否为最新版本。
+当前版本为：V3.0
 
-当前版本已实现的功能以及运行依赖库参见 readme.md 文件
+当前版本已实现功能及使用方法参见 readme.md文件，运行依赖库参见
 
-限于作者水平有限，欢迎对程序做出修改和补充，同时请通过 github 告知作者。
+通过以下地址检查程序版本是否为最新：
+GitHub：https://github.com/VicoZhang/PyComtrade.git
+Gitee：
 """
 
 import math
@@ -15,6 +17,7 @@ import csv
 import pinyin
 import matplotlib.pyplot as plt
 from scipy.io import savemat
+import argparse
 
 
 class ComtradeFile:
@@ -156,7 +159,8 @@ class ComtradeFile:
 
     def save_mat(self, mat_path):
         """
-        保存 .mat 文件，提供和 MATLAB 的数据接口。注意，由于有些文件变量名中包含汉字，无法在MATLAB中对其命名，故转换为拼英命名，
+        保存 .mat 文件，提供和 MATLAB 的数据接口。
+        注意，由于有些文件变量名中包含汉字，无法在MATLAB中对其命名，故转换为拼英命名，
         因此运行该函数需支持 pinyin 库， 具体命名规则即下载方法参见 https://pypi.org/project/pinyin/
         :param mat_path: .mat文件路径
         """
@@ -176,17 +180,20 @@ class ComtradeFile:
 
 
 if __name__ == '__main__':
-    # 以下为测试程序，开发时用到
-    # test1 = ComtradeFile('../test_file/2022-09-14_04-08-18_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-14-04_08_18-039-00019-00028')
-    # test2 = ComtradeFile('../test_file/2022-09-16_21-16-52_35kV枇杷岭站A机_10kV石下线CSC-211_录波文件', 'PL10_62_RCD_136_20220916_211652_803')
-    # test3 = ComtradeFile('../test_file/2022-09-18_21-29-45_110kV全安站_10kV F29线路保护RCS-9611B_录波文件', '2022-09-18-21_29_45-613-00043-00002')
-    # test4 = ComtradeFile('../test_file/2022-09-23_16-53-08_110kV全安站_10kV F26线路保护RCS-9611B_录波文件', '2022-09-23-16_53_08-293-00040-34599')
-    # test5 = ComtradeFile('../test_file/2022-09-24_08-07-10_110kV全安站_10kV F17线路保护RCS-9611B_录波文件', '2022-09-24-08_07_10-991-00019-00032')
-    # test6 = ComtradeFile('../test_file/2022-09-24_08-17-28_110kV横江站_10kV F20馈线_录波文件', 'D35_RCD_00144_20220924_081728_521')
-    # test7 = ComtradeFile('../test_file/2022-09-25_18-30-46_110kV横江站_10kV F33馈线_录波文件','D44_RCD_00045_20220925_183046_779')
-    # test8 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114531_483')
-    # test9 = ComtradeFile('../test_file', 'BAY01_0001_20221020_114520_483')
-    # test8.save_mat('../mat')
-    # test10 = ComtradeFile('../test_file', 'cfg_file')
-    # test11 = ComtradeFile('../test_file', '2018年05月09日15时23分34秒')
-    print()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--path', type=str, help='comtrade root path.')
+    parser.add_argument('-n', '--filename', type=str, help='comtrade file name.')
+
+    args = parser.parse_args()
+    Comtrade_reader = ComtradeFile(file_path=args.path, file_name=args.filename)
+
+    flag = input('文件已解析完成，请确认下一步操作:\n是否转换成csv文件[y/n]?')
+    Comtrade_reader.save_csv(args.path + '/csv') if flag == 'y' else ...
+    flag = input('请确认下一步操作:\n是否转换成mat文件[y/n]?')
+    Comtrade_reader.save_mat(args.path + '/mat') if flag == 'y' else ...
+    flag = input('请确认下一步操作:\n是否转换成png文件[y/n]?')
+    Comtrade_reader.save_png(args.path + '/png') if flag == 'y' else ...
+
+    input("按任意键退出")
+
+
