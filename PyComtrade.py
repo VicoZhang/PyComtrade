@@ -7,7 +7,7 @@
 
 通过以下地址检查程序版本是否为最新：
 GitHub：https://github.com/VicoZhang/PyComtrade.git
-Gitee：
+Gitee：https://gitee.com/vico_zhang/PyComtrade.git
 """
 
 import math
